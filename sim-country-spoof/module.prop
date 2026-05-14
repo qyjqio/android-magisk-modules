@@ -1,0 +1,6 @@
+id=sim_spoof
+name=SIM Country Spoof
+version=1.0
+versionCode=1
+author=草软
+description=Fake SIM operator to bypass TikTok/regional restrictions. Continuously fights telephony service to keep SIM country as US (310260).
