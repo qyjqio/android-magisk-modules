@@ -22,11 +22,12 @@ static void act_camera() {
 }
 
 static void act_flashlight() {
-    // Toggle flashlight via system properties
-    system("su -c 'echo 1 > /sys/class/leds/flashlight/brightness 2>/dev/null; "
-           "input keyevent 265 2>/dev/null' </dev/null >/dev/null 2>&1");
-    // Fallback: use Android's flashlight tile via statusbar command
-    system("su -c 'cmd statusbar click-tile com.android.systemui/com.oplus.systemui.statusbar.notification.keymagicservice.KeyFlashlightService 2>/dev/null' </dev/null >/dev/null 2>&1");
+    // Toggle torch LED: if brightness > 0 then turn off, else turn on
+    system("su -c '"
+           "b=/sys/class/leds/led:torch_0/brightness; "
+           "if [ -f $b ]; then "
+           "  [ $(cat $b) -gt 0 ] && echo 0 > $b || echo 200 > $b; "
+           "fi' </dev/null >/dev/null 2>&1");
 }
 
 static void act_screenshot() {
@@ -124,47 +125,18 @@ static void print_usage() {
 }
 
 int main(int argc, char **argv) {
-    const char *press = "short";
-    int also_inject = 0;
-    int keycode = 582;
-    int duration = 100;
-
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-            print_usage();
-            return 0;
-        }
-        if (strcmp(argv[i], "short") == 0) { press = "short"; duration = 100; }
-        else if (strcmp(argv[i], "long") == 0) { press = "long"; duration = 800; }
-        else if (strcmp(argv[i], "inject") == 0) also_inject = 1;
-        else if (strncmp(argv[i], "k=", 2) == 0) keycode = atoi(argv[i] + 2);
+    if (argc < 2) {
+        fprintf(stderr, "Usage: action_button_exec <action>\n");
+        fprintf(stderr, "Available actions:\n");
+        for (int i = 0; actions[i].name; i++)
+            fprintf(stderr, "  %s\n", actions[i].name);
+        return 1;
     }
 
-    // Read config
-    char short_action[64] = "voice_assist";
-    char long_action[64] = "camera";
-    FILE *cfg = fopen("/data/local/tmp/action_button.conf", "r");
-    if (cfg) {
-        char line[128];
-        while (fgets(line, sizeof(line), cfg)) {
-            char k[32], v[64];
-            if (sscanf(line, "%31[^=]=%63s", k, v) == 2) {
-                if (strcmp(k, "short") == 0) strncpy(short_action, v, 63);
-                if (strcmp(k, "long") == 0) strncpy(long_action, v, 63);
-            }
-        }
-        fclose(cfg);
-    }
-
-    // Optional: inject uinput key for haptic
-    if (also_inject) inject_key(keycode, duration);
-
-    // Execute
-    const char *action_name = (strcmp(press, "long") == 0) ? long_action : short_action;
+    const char *action_name = argv[1];
     const Action *a = find_action(action_name);
     if (!a) {
         fprintf(stderr, "Unknown action: %s\n", action_name);
-        print_usage();
         return 1;
     }
     a->exec();
