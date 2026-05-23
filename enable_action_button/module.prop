@@ -1,0 +1,6 @@
+id=enable_action_button
+name=OPPO Action Button with Virtual Injector
+version=v2.0
+versionCode=3
+author=army
+description=Unlock OPPO action button settings + virtual key injector. Config at /data/local/tmp/action_button.conf. Short/long press: action_button short|long
