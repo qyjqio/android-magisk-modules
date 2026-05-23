@@ -1,17 +1,27 @@
 # OPPO Action Button with Virtual Injector
 
-Unlock OPPO action button settings UI and provide a virtual key injector with short/long press support.
+Virtual action button for OPPO devices without physical action button hardware.
+**Short press is synced with OPPO Settings UI** — change it in Settings and it updates automatically.
 
-## What it does
+## Architecture
 
-1. Sets `ro.oplus.key.actionbutton=1` to unlock the action button settings UI
-2. Installs `action_button` binary to `/system/bin/`
+```
+Xposed Edge gesture
+    ↓
+/system/bin/action_button short|long    (shell wrapper)
+    ↓
+Reads OPPO Settings.System              (linked with Settings UI!)
+    ↓
+/system/bin/action_button_exec <action> (C executor)
+    ↓
+Executes action directly
+```
 
 ## Usage
 
 ```bash
-action_button short    # Execute short press action
-action_button long     # Execute long press action
+action_button short    # Short press — reads from OPPO Settings
+action_button long     # Long press — reads from config file
 ```
 
 ## Configuration
@@ -19,9 +29,10 @@ action_button long     # Execute long press action
 Edit `/data/local/tmp/action_button.conf`:
 
 ```
-short=voice_assist    # Short press action
-long=camera           # Long press action
+long=flash_light      # Long press action only
 ```
+
+Short press is ALWAYS from OPPO Settings (`oplus_action_button_switch_state`), not configurable in this file.
 
 ## Available actions
 
@@ -45,13 +56,19 @@ Bind gestures to shell commands:
 - Short press: `su -c action_button short`
 - Long press: `su -c action_button long`
 
+## How it works
+
+1. Sets `ro.oplus.key.actionbutton=1` to unlock OPPO action button settings UI
+2. `action_button` wrapper reads current selection from `Settings.System oplus_action_button_switch_state`
+3. `action_button_exec` performs the action directly, bypassing OPPO framework
+
 ## Build
 
 ```bash
-arm-linux-gnueabihf-gcc -static -Os -o action_button action_button_v3.c
+arm-linux-gnueabihf-gcc -static -Os -o action_button_exec action_button_v3.c
 ```
 
 ## Credits
 
 - Original module: 抖音：车机研究所_草软
-- Virtual injector: army
+- Virtual injector + Settings linkage: army

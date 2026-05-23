@@ -22,12 +22,9 @@ static void act_camera() {
 }
 
 static void act_flashlight() {
-    // Toggle torch LED: if brightness > 0 then turn off, else turn on
-    system("su -c '"
-           "b=/sys/class/leds/led:torch_0/brightness; "
-           "if [ -f $b ]; then "
-           "  [ $(cat $b) -gt 0 ] && echo 0 > $b || echo 200 > $b; "
-           "fi' </dev/null >/dev/null 2>&1");
+    // Toggle via CameraManager.setTorchMode (app_process, shell uid)
+    if (system("CLASSPATH=/data/local/tmp/flashlight.dex app_process / Flashlight toggle </dev/null >/dev/null 2>&1") != 0)
+        system("CLASSPATH=/system/bin/flashlight.dex app_process / Flashlight toggle </dev/null >/dev/null 2>&1");
 }
 
 static void act_screenshot() {
