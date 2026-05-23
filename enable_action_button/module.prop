@@ -1,6 +1,0 @@
-id=enable_action_button
-name=OPPO Action Button with Virtual Injector
-version=v3.0
-versionCode=4
-author=army
-description=Virtual action button. Short press synced with OPPO Settings.System. Long press configurable. Usage: action_button short|long

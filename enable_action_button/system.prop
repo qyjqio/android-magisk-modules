@@ -1,5 +1,0 @@
-# OPPO Action Button Enable
-# 启用小布记忆实体按键功能
-
-# 启用OPPO小布记忆实体按键功能
-ro.oplus.key.actionbutton=1
